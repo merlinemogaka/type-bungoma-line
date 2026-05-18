@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a3a6b">
+  <title>Bungoma Line — Finance Ledger</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+  <style>
+    :root {
+      --primary: #1a3a6b;
+      --primary-light: #2a5298;
+      --gold: #f5c842;
+      --bg: #f5f6fa;
+      --bg2: #ffffff;
+      --bg3: #eef0f5;
+      --text: #1a1d23;
+      --text2: #5a6075;
+      --text3: #9aa0b4;
+      --border: rgba(0,0,0,0.09);
+      --border2: rgba(0,0,0,0.15);
+      --green: #0F6E56;
+      --green-bg: #E1F5EE;
+      --red: #A32D2D;
+      --red-bg: #FCEBEB;
+      --amber: #854F0B;
+      --amber-bg: #FAEEDA;
+      --radius: 10px;
+      --radius-lg: 14px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --shadow-lg: 0 4px 24px rgba(0,0,0,0.11);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1117;
+        --bg2: #1a1d26;
+        --bg3: #13151e;
+        --text: #e8eaf0;
+        --text2: #8a90a8;
+        --text3: #555c74;
+        --border: rgba(255,255,255,0.08);
+        --border2: rgba(255,255,255,0.15);
+        --green-bg: #0a2e22;
+        --red-bg: #2a1010;
+        --amber-bg: #2a1e08;
+        --shadow: 0 2px 12px rgba(0,0,0,0.3);
+        --shadow-lg: 0 4px 24px rgba(0,0,0,0.4);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes popIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+    @keyframes ripple { from { transform:scale(0); opacity:.4; } to { transform:scale(3.5); opacity:0; } }
+    @keyframes barGrow { from { width:0; } to { width:var(--w); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+    @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+    @keyframes shake { 0%,100% { transform:translateX(0); } 20%,60% { transform:translateX(-7px); } 40%,80% { transform:translateX(7px); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes toastIn { from { opacity:0; transform:translateX(-50%) translateY(-18px) scale(0.88); } to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); } }
+    @keyframes toastOut { from { opacity:1; transform:translateX(-50%) scale(1); } to { opacity:0; transform:translateX(-50%) scale(0.88); } }
+    @keyframes logoAnim { 0% { transform:scale(0.7) rotate(-10deg); opacity:0; } 60% { transform:scale(1.08) rotate(2deg); } 100% { transform:scale(1) rotate(0deg); opacity:1; } }
+
+    /* ── Layout ── */
+    .app-shell {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--bg);
+      position: relative;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Toast ── */
+    .toast-host {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .toast {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      box-shadow: var(--shadow-lg);
+      animation: toastIn .32s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    .toast.out { animation: toastOut .25s ease forwards; }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--red); }
+    .toast.warn { background: #7c4a00; }
+
+    /* ── Login ── */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      background: var(--bg);
+    }
+    .login-logo-wrap {
+      position: relative;
+      margin-bottom: 22px;
+    }
+    .login-logo {
+      width: 72px;
+      height: 72px;
+      background: var(--primary);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: logoAnim .6s cubic-bezier(.22,1,.36,1) both;
+      box-shadow: 0 6px 28px rgba(26,58,107,.35);
+    }
+    .login-logo i { color: var(--gold); font-size: 34px; }
+    .login-ring {
+      position: absolute;
+      inset: -8px;
+      border-radius: 28px;
+      border: 1.5px solid rgba(26,58,107,.2);
+      animation: pulse 2.8s ease-in-out infinite;
+    }
+    .login-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      animation: fadeUp .4s .15s both;
+      letter-spacing: -0.02em;
+    }
+    .login-sub {
+      font-size: 14px;
+      color: var(--text2);
+      margin-bottom: 32px;
+      text-align: center;
+      animation: fadeUp .4s .2s both;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-lg);
+      animation: fadeUp .4s .28s both;
+    }
+    .login-err {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: var(--red-bg);
+      border: 1px solid #F09595;
+      border-radius: var(--radius);
+      color: var(--red);
+      font-size: 13px;
+      padding: 10px 13px;
+      margin-bottom: 14px;
+    }
+    .login-err.show { display: flex; animation: shake .4s; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 46px; }
+    .pw-eye {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 20px;
+      padding: 4px;
+      transition: color .2s;
+      display: flex;
+      align-items: center;
+    }
+    .pw-eye:hover { color: var(--text); }
+    .demo-section {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .demo-label { font-size: 12px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+    .demo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      padding: 7px 8px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .18s;
+      animation: fadeUp .3s cubic-bezier(.22,1,.36,1) both;
+    }
+    .demo-row:hover { background: var(--bg3); }
+    .demo-row:active { background: var(--bg3); transform: scale(0.99); }
+    .role-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 99px;
+      min-width: 78px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .demo-creds { color: var(--text2); }
+    .demo-creds strong { color: var(--text); font-weight: 600; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--primary);
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-icon {
+      width: 38px;
+      height: 38px;
+      background: rgba(255,255,255,.13);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .2s;
+    }
+    .topbar-icon:active { transform: scale(0.9); }
+    .topbar-icon i { color: var(--gold); font-size: 20px; }
+    .topbar-brand { flex: 1; }
+    .topbar-title { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
+    .topbar-sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 1px; }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,.13);
+      border-radius: 99px;
+      padding: 5px 12px 5px 5px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .user-pill:active { background: rgba(255,255,255,.22); }
+    .u-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .u-name { font-size: 12px; color: rgba(255,255,255,.9); font-weight: 600; }
+    .logout-btn {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.5);
+      cursor: pointer;
+      padding: 7px;
+      border-radius: 8px;
+      transition: color .2s, background .2s;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .logout-btn:hover { color: #fff; background: rgba(255,255,255,.1); }
+
+    /* ── Bottom nav ── */
+    .bnav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 0 max(12px, env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+    .bnav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 10px;
+      color: var(--text3);
+      min-width: 52px;
+      min-height: 50px;
+      justify-content: center;
+      transition: color .2s, transform .15s;
+    }
+    .bnav-btn i { font-size: 23px; transition: transform .22s cubic-bezier(.22,1,.36,1); }
+    .bnav-btn.active { color: var(--primary); }
+    .bnav-btn.active i { transform: scale(1.18); }
+    .bnav-btn:active i { transform: scale(0.88); }
+    .nb-label { font-size: 10px; font-weight: 600; }
+    .nav-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity .2s, transform .2s;
+      margin: 1px auto 0;
+    }
+    .bnav-btn.active .nav-dot { opacity: 1; transform: scale(1); }
+    .pb {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      background: #E24B4A;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      margin-left: 3px;
+      vertical-align: middle;
+      animation: popIn .22s cubic-bezier(.22,1,.36,1);
+    }
+
+    /* ── Sections ── */
+    .sec { display: none; padding: 14px 14px 0; animation: fadeUp .3s cubic-bezier(.22,1,.36,1) both; }
+    .sec.active { display: block; }
+    .main-body { padding-bottom: 90px; }
+
+    /* ── Hero card ── */
+    .hero-card {
+      background: var(--primary);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      right: -24px; top: -24px;
+      width: 110px; height: 110px;
+      background: rgba(245,200,66,.08);
+      border-radius: 50%;
+    }
+    .hero-card::after {
+      content: '';
+      position: absolute;
+      right: 22px; bottom: -32px;
+      width: 80px; height: 80px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+    }
+    .hero-label { font-size: 11px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 7px; }
+    .hero-amount { font-size: 36px; font-weight: 700; color: #fff; letter-spacing: -.03em; line-height: 1; transition: color .3s; }
+    .hero-sub { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 7px; }
+    .hero-pills { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .hero-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,.1);
+      border-radius: 99px;
+      padding: 5px 13px;
+      font-size: 12px;
+      color: rgba(255,255,255,.85);
+      transition: background .2s;
+    }
+    .hero-pill:hover { background: rgba(255,255,255,.17); }
+    .hero-pill i { font-size: 14px; }
+
+    /* ── Metrics ── */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .metric {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      transition: transform .18s, box-shadow .18s;
+      cursor: default;
+    }
+    .metric:active { transform: scale(0.97); }
+    .ml { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; display: flex; align-items: center; gap: 5px; }
+    .ml i { font-size: 14px; }
+    .mv { font-size: 21px; font-weight: 700; color: var(--text); }
+    .mv.g { color: var(--green); } .mv.r { color: var(--red); } .mv.b { color: var(--primary); } .mv.o { color: var(--amber); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .ct { font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .07em; }
+    .rh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .seeall {
+      font-size: 13px;
+      color: var(--primary);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 4px 0;
+      transition: gap .2s;
+    }
+    .seeall:hover { gap: 7px; }
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .section-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+
+    /* ── Form elements ── */
+    .fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .fg label { font-size: 13px; color: var(--text2); font-weight: 500; }
+    input, select, textarea {
+      width: 100%;
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 11px 13px;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26,58,107,.12);
+    }
+    textarea { resize: vertical; min-height: 60px; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a90a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 36px; cursor: pointer; }
+
+    /* ── Buttons ── */
+    .bp {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      min-height: 50px;
+      position: relative;
+      overflow: hidden;
+      transition: opacity .15s, transform .12s, background .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .bp:active { transform: scale(0.98); opacity: .9; }
+    .bp.success { background: var(--green); }
+    .ripple-el {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,.25);
+      pointer-events: none;
+      animation: ripple .6s linear forwards;
+    }
+    .bs {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .18s, color .18s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bs:hover { background: var(--bg3); color: var(--text); }
+    .bdel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--red);
+      padding: 7px 11px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .18s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .bdel:active { background: var(--red-bg); }
+    .bapp {
+      background: none;
+      border: 1px solid #5DCAA5;
+      color: var(--green);
+      padding: 7px 11px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .18s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .bapp:active { background: var(--green-bg); }
+    .brej {
+      background: none;
+      border: 1px solid #F0997B;
+      color: #712B13;
+      padding: 7px 11px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .18s;
+    }
+    .brej:active { background: #FAECE7; }
+    .ttoggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .tbtn {
+      padding: 13px;
+      border: 1.5px solid var(--border2);
+      border-radius: var(--radius);
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text2);
+      transition: all .22s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 48px;
+    }
+    .tbtn.in.active { background: var(--green-bg); color: #085041; border-color: #5DCAA5; transform: scale(1.02); box-shadow: 0 2px 10px rgba(15,110,86,.15); }
+    .tbtn.out.active { background: var(--red-bg); color: #791F1F; border-color: #F0997B; transform: scale(1.02); box-shadow: 0 2px 10px rgba(163,45,45,.15); }
+
+    /* ── Transaction items ── */
+    .txlist { display: flex; flex-direction: column; gap: 9px; }
+    .txi {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 13px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: transform .18s, border-color .18s;
+      animation: fadeUp .28s cubic-bezier(.22,1,.36,1) both;
+      cursor: default;
+    }
+    .txi:active { transform: scale(0.99); }
+    .txi.pending { border-left: 3px solid #EF9F27; }
+    .txi.approved { border-left: 3px solid #5DCAA5; }
+    .txi.rejected { border-left: 3px solid #F09595; opacity: .65; }
+    .txicon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: transform .2s;
+    }
+    .txi:active .txicon { transform: scale(1.1); }
+    .txicon.in { background: var(--green-bg); color: var(--green); }
+    .txicon.out { background: var(--red-bg); color: var(--red); }
+    .txbody { flex: 1; min-width: 0; }
+    .txdesc { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .txmeta { font-size: 11px; color: var(--text2); margin-top: 4px; line-height: 1.7; }
+    .txright { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+    .txamt { font-size: 14px; font-weight: 700; }
+    .txamt.in { color: var(--green); }
+    .txamt.out { color: var(--red); }
+
+    /* ── Badges ── */
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+    .bin { background: var(--green-bg); color: #085041; }
+    .bout { background: var(--red-bg); color: #791F1F; }
+    .bpend { background: var(--amber-bg); color: #633806; }
+    .bapprv { background: var(--green-bg); color: #085041; }
+    .brejct { background: var(--red-bg); color: #791F1F; }
+    .bcat { background: var(--bg3); color: var(--text2); }
+    .rpill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #e8edf7; color: var(--primary); font-weight: 600; }
+
+    /* ── Filter bar ── */
+    .fbar { display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px; }
+    .fbar select, .fbar input { font-size: 14px; }
+
+    /* ── Empty states ── */
+    .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text2); font-size: 14px; }
+    .empty i { font-size: 40px; display: block; margin: 0 auto 12px; opacity: .25; }
+
+    /* ── Member cards ── */
+    .mgrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .mcard {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      transition: transform .18s;
+      animation: popIn .3s cubic-bezier(.22,1,.36,1) both;
+      cursor: default;
+    }
+    .mcard:active { transform: scale(0.97); }
+    .mavatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .mname { font-size: 14px; font-weight: 700; color: var(--text); }
+    .mrole { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .mstat { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text2); }
+    .mstat span { font-weight: 700; color: var(--text); }
+
+    /* ── Budget bars ── */
+    .bbar { display: flex; flex-direction: column; gap: 14px; }
+    .bitem { display: flex; flex-direction: column; gap: 6px; animation: fadeUp .3s cubic-bezier(.22,1,.36,1) both; }
+    .brow { display: flex; justify-content: space-between; font-size: 13px; }
+    .btrack { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+    .bfill { height: 100%; border-radius: 4px; width: var(--w, 0); transition: width .7s cubic-bezier(.22,1,.36,1); }
+    .bfill.ok { background: #1D9E75; } .bfill.warn { background: #EF9F27; } .bfill.over { background: #E24B4A; }
+
+    /* ── Account tabs ── */
+    .acctabs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+    .atab {
+      padding: 8px 16px;
+      border: 1px solid var(--border2);
+      border-radius: 99px;
+      background: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      color: var(--text2);
+      transition: all .2s;
+      min-height: 36px;
+    }
+    .atab.active { background: var(--primary); color: #fff; border-color: var(--primary); transform: scale(1.04); box-shadow: 0 2px 10px rgba(26,58,107,.25); }
+
+    /* ── Role banner ── */
+    .role-banner {
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      animation: slideDown .3s cubic-bezier(.22,1,.36,1);
+    }
+    .lock-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--amber-bg);
+      border: 1px solid #EF9F27;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #633806;
+      font-weight: 500;
+      animation: fadeIn .3s;
+    }
+
+    /* ── User management ── */
+    .user-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 13px;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      animation: fadeUp .28s cubic-bezier(.22,1,.36,1) both;
+      transition: border-color .2s;
+    }
+    .um-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .um-body { flex: 1; min-width: 0; }
+    .um-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .um-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    @media (min-width: 520px) {
+      .app-shell { box-shadow: 0 0 0 1px var(--border), var(--shadow-lg); }
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="toast-host" id="toast-host"></div>
+
+  <!-- LOGIN -->
+  <div id="page-login" class="page active">
+    <div class="login-page">
+      <div class="login-logo-wrap">
+        <div class="login-ring"></div>
+        <div class="login-logo"><i class="ti ti-bus"></i></div>
+      </div>
+      <div class="login-title">Bungoma Line</div>
+      <div class="login-sub">Finance &amp; operations ledger</div>
+      <div class="login-card">
+        <div class="login-err" id="login-err"><i class="ti ti-alert-circle"></i><span id="login-err-msg">Incorrect username or password.</span></div>
+        <div class="fg"><label>Username</label><input type="text" id="login-user" placeholder="Enter username" autocomplete="username" autocapitalize="none" autocorrect="off"></div>
+        <div class="fg"><label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password">
+            <button class="pw-eye" onclick="togglePw()" type="button" aria-label="Toggle password visibility"><i class="ti ti-eye" id="pw-icon"></i></button>
+          </div>
+        </div>
+        <button class="bp" onclick="doLogin()"><i class="ti ti-login"></i> Sign in</button>
+        <div class="demo-section">
+          <div class="demo-label">Demo accounts — tap to autofill</div>
+          <div id="demo-hints"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="page-main" class="page">
+    <div class="topbar">
+      <div class="topbar-icon"><i class="ti ti-bus"></i></div>
+      <div class="topbar-brand">
+        <div class="topbar-title">Bungoma Line</div>
+        <div class="topbar-sub" id="topbar-date"></div>
+      </div>
+      <div class="user-pill">
+        <div class="u-avatar" id="u-avatar"></div>
+        <span class="u-name" id="u-name"></span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()" aria-label="Sign out"><i class="ti ti-logout"></i></button>
+    </div>
+
+    <div class="main-body">
+      <!-- DASHBOARD -->
+      <div id="tab-dashboard" class="sec active">
+        <div id="role-banner" class="role-banner"></div>
+        <div class="hero-card">
+          <div class="hero-label"><i class="ti ti-wallet" style="font-size:12px;vertical-align:-1px"></i> Total balance</div>
+          <div class="hero-amount" id="hero-bal">KES 0</div>
+          <div class="hero-sub" id="hero-sub"></div>
+          <div class="hero-pills" id="hero-pills"></div>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <div class="card">
+          <div class="rh">
+            <div class="ct" style="margin-bottom:0">Recent transactions</div>
+            <button class="seeall" onclick="showTab('history')">See all <i class="ti ti-arrow-right" style="font-size:14px"></i></button>
+          </div>
+          <div id="recent-list" class="txlist" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <div class="ct">Spending by category</div>
+          <div id="cat-breakdown"></div>
+          <div class="divider"></div>
+          <div class="ct">Budget alerts</div>
+          <div id="budget-alerts"></div>
+        </div>
+      </div>
+
+      <!-- ADD TRANSACTION -->
+      <div id="tab-add" class="sec">
+        <div id="add-lock" class="lock-banner" style="display:none"><i class="ti ti-lock" style="font-size:18px"></i><span id="add-lock-msg"></span></div>
+        <div id="add-form">
+          <div class="card">
+            <div class="ct">New transaction</div>
+            <div class="ttoggle">
+              <button class="tbtn in active" id="type-in" onclick="setType('in')"><i class="ti ti-arrow-down-circle"></i> Money in</button>
+              <button class="tbtn out" id="type-out" onclick="setType('out')"><i class="ti ti-arrow-up-circle"></i> Money out</button>
+            </div>
+            <div class="fg"><label>Amount (KES)</label><input type="number" id="f-amount" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
+            <div class="fg"><label>Date</label><input type="date" id="f-date"></div>
+            <div class="fg"><label>Staff member</label><select id="f-member"><option value="">Select staff…</option></select></div>
+            <div class="fg"><label>Account / fund</label><select id="f-account"></select></div>
+            <div class="fg"><label>Category</label><select id="f-category"></select></div>
+            <div class="fg"><label>Route</label><select id="f-route"><option value="">No specific route</option></select></div>
+            <div class="fg"><label>Vehicle registration</label><input type="text" id="f-vehicle" placeholder="e.g. KCA 123A"></div>
+            <div class="fg" id="approval-fg"><label>Approval</label><select id="f-approval"><option value="auto">Auto-approve</option><option value="required">Needs approval</option></select></div>
+            <div class="fg"><label>Description</label><input type="text" id="f-desc" placeholder="Brief description of the transaction"></div>
+            <div class="fg"><label>Notes / receipt reference</label><textarea id="f-notes" placeholder="Receipt #, waybill number, additional context…"></textarea></div>
+            <button class="bp" onclick="addTransaction()"><i class="ti ti-circle-check"></i> Record transaction</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPROVALS -->
+      <div id="tab-approvals" class="sec">
+        <div id="appr-lock" class="lock-banner" style="display:none"><i class="ti ti-lock" style="font-size:18px"></i> Only head staff, admin and CEO can approve transactions.</div>
+        <div class="section-title">Pending approvals</div>
+        <div id="approvals-list" class="txlist"></div>
+      </div>
+
+      <!-- HISTORY -->
+      <div id="tab-history" class="sec">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="section-title" style="margin-bottom:0">Transaction history</div>
+          <button class="bs" id="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+        </div>
+        <div class="fbar">
+          <select id="filter-type" onchange="renderHistory()"><option value="">All types</option><option value="in">Money in</option><option value="out">Money out</option></select>
+          <select id="filter-member" onchange="renderHistory()"><option value="">All staff</option></select>
+          <select id="filter-cat" onchange="renderHistory()"><option value="">All categories</option></select>
+          <select id="filter-status" onchange="renderHistory()"><option value="">All statuses</option><option value="approved">Approved</option><option value="pending">Pending</option><option value="rejected">Rejected</option></select>
+          <input type="search" id="filter-search" placeholder="Search transactions…" oninput="renderHistory()">
+        </div>
+        <div id="history-list" class="txlist"></div>
+      </div>
+
+      <!-- BUDGETS -->
+      <div id="tab-budgets" class="sec">
+        <div id="budget-lock" class="lock-banner" style="display:none"><i class="ti ti-lock" style="font-size:18px"></i> Only admin and CEO can set budgets.</div>
+        <div id="budget-form" class="card">
+          <div class="ct">Set monthly budget</div>
+          <div class="fg"><label>Category</label><select id="b-cat"></select></div>
+          <div class="fg"><label>Monthly budget (KES)</label><input type="number" id="b-amount" placeholder="e.g. 80000" min="0" inputmode="numeric"></div>
+          <button class="bp" onclick="setBudget()"><i class="ti ti-device-floppy"></i> Save budget</button>
+        </div>
+        <div class="card">
+          <div class="ct">This month's usage</div>
+          <div id="budget-list" class="bbar"></div>
+        </div>
+      </div>
+
+      <!-- MORE (Accounts + Admin) -->
+      <div id="tab-more" class="sec">
+        <div class="section-title">Accounts</div>
+        <div id="account-tabs" class="acctabs"></div>
+        <div id="account-detail"></div>
+        <div class="divider"></div>
+        <div id="admin-section" style="display:none">
+          <div class="section-title">User management</div>
+          <div id="user-list"></div>
+          <div class="card" style="margin-top:10px">
+            <div class="ct">Add new user</div>
+            <div class="fg"><label>Full name</label><input type="text" id="nu-name" placeholder="Jane Wekesa"></div>
+            <div class="fg"><label>Username</label><input type="text" id="nu-user" placeholder="jwekesa" autocapitalize="none"></div>
+            <div class="fg"><label>Password</label><input type="password" id="nu-pass" placeholder="Password"></div>
+            <div class="fg"><label>Clearance level</label><select id="nu-role"><option value="staff">Staff</option><option value="head_staff">Head staff</option><option value="admin">Admin</option><option value="ceo">CEO</option></select></div>
+            <button class="bp" onclick="addUser()"><i class="ti ti-user-plus"></i> Add user</button>
+          </div>
+          <div class="divider"></div>
+          <div class="section-title">Staff members</div>
+          <div id="member-grid" class="mgrid"></div>
+          <div class="card" style="margin-top:10px">
+            <div class="ct">Add staff member</div>
+            <div class="fg"><label>Full name</label><input type="text" id="m-name" placeholder="John Wafula"></div>
+            <div class="fg"><label>Role</label><input type="text" id="m-role" placeholder="Driver, Conductor, Clerk…"></div>
+            <button class="bp" onclick="addMember()"><i class="ti ti-user-plus"></i> Add staff member</button>
+          </div>
+          <div class="divider"></div>
+          <div class="section-title">Accounts &amp; routes</div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+            <div class="card" style="margin-bottom:0">
+              <div class="ct">Add account</div>
+              <div class="fg"><label>Name</label><input type="text" id="a-name" placeholder="Fuel fund…"></div>
+              <div class="fg"><label>Opening balance (KES)</label><input type="number" id="a-bal" placeholder="0" min="0" inputmode="numeric"></div>
+              <button class="bp" onclick="addAccount()">Add</button>
+            </div>
+            <div class="card" style="margin-bottom:0">
+              <div class="ct">Add route</div>
+              <div class="fg"><label>Route name</label><input type="text" id="r-name" placeholder="Bungoma – Nbi"></div>
+              <div class="fg"><label>Distance (km)</label><input type="number" id="r-dist" placeholder="400" min="0" inputmode="numeric"></div>
+              <button class="bp" onclick="addRoute()">Add</button>
+            </div>
+          </div>
+        </div>
+        <div id="staff-more" style="display:none">
+          <div class="section-title">Staff members</div>
+          <div id="member-grid-staff" class="mgrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bnav">
+      <button class="bnav-btn active" id="nav-dashboard" onclick="showTab('dashboard')" aria-label="Dashboard">
+        <i class="ti ti-home"></i><div class="nav-dot"></div><span class="nb-label">Home</span>
+      </button>
+      <button class="bnav-btn" id="nav-add" onclick="showTab('add')" aria-label="Add">
+        <i class="ti ti-circle-plus"></i><div class="nav-dot"></div><span class="nb-label">Add</span>
+      </button>
+      <button class="bnav-btn" id="nav-approvals" onclick="showTab('approvals')" aria-label="Approvals">
+        <i class="ti ti-check"></i><div class="nav-dot"></div><span class="nb-label" id="appr-label">Approve</span>
+      </button>
+      <button class="bnav-btn" id="nav-history" onclick="showTab('history')" aria-label="History">
+        <i class="ti ti-list"></i><div class="nav-dot"></div><span class="nb-label">History</span>
+      </button>
+      <button class="bnav-btn" id="nav-budgets" onclick="showTab('budgets')" aria-label="Budgets">
+        <i class="ti ti-chart-bar"></i><div class="nav-dot"></div><span class="nb-label">Budgets</span>
+      </button>
+      <button class="bnav-btn" id="nav-more" onclick="showTab('more')" aria-label="More">
+        <i class="ti ti-dots"></i><div class="nav-dot"></div><span class="nb-label">More</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let txns=[], members=[], budgets={}, accounts=[], routes=[], users=[];
+  let currentType='in', currentAccount=null, currentUser=null;
+
+  const CATS=['Ticket revenue','Fuel','Driver wages','Conductor wages','Vehicle maintenance','Tyres & parts','NTSA / licensing','Insurance','Tolls & levies','Parking','Office expenses','Miscellaneous'];
+  const DROUTES=['Bungoma – Nairobi','Bungoma – Kisumu','Bungoma – Eldoret','Bungoma – Kakamega','Bungoma – Webuye'];
+
+  const ROLES={
+    ceo:{label:'CEO',bg:'#1a3a6b',color:'#f5c842',badgeBg:'#E6F1FB',badgeColor:'#0C447C',bannerBg:'#E6F1FB',bannerColor:'#0C447C'},
+    admin:{label:'Admin',bg:'#534AB7',color:'#fff',badgeBg:'#EEEDFE',badgeColor:'#3C3489',bannerBg:'#EEEDFE',bannerColor:'#3C3489'},
+    head_staff:{label:'Head staff',bg:'#0F6E56',color:'#fff',badgeBg:'#E1F5EE',badgeColor:'#085041',bannerBg:'#E1F5EE',bannerColor:'#085041'},
+    staff:{label:'Staff',bg:'#185FA5',color:'#fff',badgeBg:'#E6F1FB',badgeColor:'#0C447C',bannerBg:'#E6F1FB',bannerColor:'#0C447C'}
+  };
+
+  const DEFAULT_USERS=[
+    {id:1,name:'Samuel Barasa',username:'ceo',password:'ceo123',role:'ceo'},
+    {id:2,name:'Alice Wanjiku',username:'admin',password:'admin123',role:'admin'},
+    {id:3,name:'Brian Mwangi',username:'headstaff',password:'head123',role:'head_staff'},
+    {id:4,name:'Carol Njeri',username:'staff',password:'staff123',role:'staff'}
+  ];
+
+  const PERMS={
+    add_transaction:['staff','head_staff','admin','ceo'],
+    approve:['head_staff','admin','ceo'],
+    delete:['admin','ceo'],
+    set_budget:['admin','ceo'],
+    export_csv:['head_staff','admin','ceo'],
+    view_amounts:['head_staff','admin','ceo'],
+    manage_users:['admin','ceo'],
+    manage_accounts:['admin','ceo']
+  };
+
+  function can(action){ return (PERMS[action]||[]).includes(currentUser?.role); }
+
+  function initials(n){ return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+  function fmt(n,mask){ return mask?'KES ****':('KES '+Math.round(n).toLocaleString()); }
+  function statusBadge(s){ return s==='pending'?'<span class="badge bpend">Pending</span>':s==='rejected'?'<span class="badge brejct">Rejected</span>':'<span class="badge bapprv">Approved</span>'; }
+  function roleBadge(r){ const m=ROLES[r]||ROLES.staff; return `<span class="badge" style="background:${m.badgeBg};color:${m.badgeColor}">${m.label}</span>`; }
+
+  function load(){
+    const data=JSON.parse(localStorage.getItem('bl-data')||'{}');
+    if(data.txns) txns=data.txns;
+    if(data.members) members=data.members;
+    if(data.accounts) accounts=data.accounts;
+    if(data.routes) routes=data.routes;
+    if(data.users) users=data.users;
+    if(data.budgets) budgets=data.budgets;
+    if(!users.length) users=[...DEFAULT_USERS];
+    if(!members.length) members=[{id:1,name:'John Wafula',role:'Driver'},{id:2,name:'Grace Nekesa',role:'Conductor'},{id:3,name:'Peter Simiyu',role:'Clerk'}];
+    if(!accounts.length) accounts=[{id:1,name:'Ticket revenue',balance:0},{id:2,name:'Fuel fund',balance:0},{id:3,name:'General operations',balance:0}];
+    if(!routes.length) DROUTES.forEach((r,i)=>routes.push({id:i+1,name:r,dist:0}));
+    document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('en-KE',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    renderDemoHints();
+    const saved=sessionStorage.getItem('bl-session');
+    if(saved){ currentUser=JSON.parse(saved); showMain(); }
+  }
+
+  function save(){
+    localStorage.setItem('bl-data', JSON.stringify({txns,members,accounts,routes,users,budgets}));
+  }
+
+  // Ripple on buttons
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('.bp');
+    if(!b) return;
+    const r=document.createElement('span');
+    r.className='ripple-el';
+    const rect=b.getBoundingClientRect();
+    const size=Math.max(rect.width,rect.height);
+    r.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+    b.appendChild(r);
+    setTimeout(()=>r.remove(),650);
+  });
+
+  let toastTimer=null;
+  function toast(msg,type=''){
+    const host=document.getElementById('toast-host');
+    const old=host.querySelector('.toast');
+    if(old){ old.classList.add('out'); setTimeout(()=>old.remove(),260); }
+    if(toastTimer) clearTimeout(toastTimer);
+    setTimeout(()=>{
+      const icons={success:'ti-circle-check',error:'ti-alert-circle',warn:'ti-alert-triangle'};
+      const t=document.createElement('div');
+      t.className='toast'+(type?' '+type:'');
+      t.innerHTML=`<i class="ti ${icons[type]||'ti-info-circle'}"></i>${msg}`;
+      host.appendChild(t);
+      toastTimer=setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300);},2800);
+    },old?220:0);
+  }
+
+  function animNum(el,target,mask){
+    if(mask){el.textContent='KES ****';return;}
+    const dur=700,start=performance.now();
+    (function step(now){
+      const p=Math.min((now-start)/dur,1);
+      const e=1-Math.pow(1-p,3);
+      el.textContent='KES '+Math.round(target*e).toLocaleString();
+      if(p<1) requestAnimationFrame(step);
+    })(start);
+  }
+
+  function renderDemoHints(){
+    document.getElementById('demo-hints').innerHTML=DEFAULT_USERS.map((u,i)=>{
+      const m=ROLES[u.role];
+      return `<div class="demo-row" style="animation-delay:${i*.07}s" onclick="autofill('${u.username}','${u.password}')">
+        <span class="role-chip" style="background:${m.bg};color:${m.color}">${m.label}</span>
+        <span class="demo-creds"><strong>${u.username}</strong> / ${u.password}</span>
+        <i class="ti ti-corner-down-left" style="margin-left:auto;font-size:14px;opacity:.5"></i>
+      </div>`;
+    }).join('');
+  }
+
+  function autofill(u,p){
+    document.getElementById('login-user').value=u;
+    document.getElementById('login-pass').value=p;
+    const btn=document.querySelector('.login-card .bp');
+    btn.classList.add('success');
+    setTimeout(()=>btn.classList.remove('success'),700);
+  }
+
+  function togglePw(){
+    const inp=document.getElementById('login-pass');
+    const icon=document.getElementById('pw-icon');
+    inp.type=inp.type==='password'?'text':'password';
+    icon.className=inp.type==='password'?'ti ti-eye':'ti ti-eye-off';
+  }
+
+  function doLogin(){
+    const uname=document.getElementById('login-user').value.trim().toLowerCase();
+    const pass=document.getElementById('login-pass').value;
+    const found=users.find(u=>u.username.toLowerCase()===uname&&u.password===pass);
+    if(!found){
+      const err=document.getElementById('login-err');
+      err.classList.add('show');
+      setTimeout(()=>err.classList.remove('show'),3500);
+      return;
+    }
+    currentUser=found;
+    sessionStorage.setItem('bl-session',JSON.stringify(found));
+    showMain();
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&document.getElementById('page-login').classList.contains('active')) doLogin();
+  });
+
+  function doLogout(){
+    currentUser=null;
+    sessionStorage.removeItem('bl-session');
+    document.getElementById('page-main').classList.remove('active');
+    document.getElementById('page-login').classList.add('active');
+    ['login-user','login-pass'].forEach(id=>document.getElementById(id).value='');
+    toast('Signed out');
+  }
+
+  function showMain(){
+    document.getElementById('page-login').classList.remove('active');
+    document.getElementById('page-main').classList.add('active');
+    const m=ROLES[currentUser.role];
+    const av=document.getElementById('u-avatar');
+    av.style.background=m.bg; av.style.color=m.color; av.textContent=initials(currentUser.name);
+    document.getElementById('u-name').textContent=currentUser.name;
+    applyPermissions(); populateSelects(); renderAll(); showTab('dashboard');
+    toast(`Welcome, ${currentUser.name.split(' ')[0]}!`,'success');
+  }
+
+  function applyPermissions(){
+    document.getElementById('add-lock').style.display='none';
+    document.getElementById('add-form').style.display=can('add_transaction')?'block':'none';
+    if(!can('add_transaction')){
+      document.getElementById('add-lock').style.display='flex';
+      document.getElementById('add-lock-msg').textContent='Your clearance level does not permit adding transactions.';
+    }
+    document.getElementById('appr-lock').style.display=can('approve')?'none':'flex';
+    document.getElementById('budget-lock').style.display=can('set_budget')?'none':'flex';
+    document.getElementById('budget-form').style.display=can('set_budget')?'block':'none';
+    document.getElementById('export-btn').style.display=can('export_csv')?'':'none';
+    document.getElementById('admin-section').style.display=can('manage_users')?'block':'none';
+    document.getElementById('staff-more').style.display=can('manage_users')?'none':'block';
+    const apf=document.getElementById('approval-fg');
+    if(apf) apf.style.display=can('approve')?'block':'none';
+  }
+
+  function setType(t){
+    currentType=t;
+    document.getElementById('type-in').classList.toggle('active',t==='in');
+    document.getElementById('type-out').classList.toggle('active',t==='out');
+  }
+
+  function showTab(id){
+    document.querySelectorAll('.sec').forEach(s=>{ s.classList.remove('active'); s.style.animation='none'; });
+    document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+    const el=document.getElementById('tab-'+id);
+    el.style.animation='';
+    el.classList.add('active');
+    ['dashboard','add','approvals','history','budgets','more'].forEach((n,i)=>{
+      document.querySelectorAll('.bnav-btn')[i].classList.toggle('active',n===id);
+    });
+    renderAll(); window.scrollTo(0,0);
+  }
+
+  function populateSelects(){
+    [['f-member','Select staff…'],['filter-member','All staff']].forEach(([id,ph])=>{
+      const s=document.getElementById(id); if(!s) return;
+      const v=s.value; s.innerHTML=`<option value="">${ph}</option>`;
+      members.forEach(m=>{ const o=document.createElement('option'); o.value=m.id; o.textContent=m.name; s.appendChild(o); });
+      s.value=v;
+    });
+    [['f-account',''],['filter-account','All accounts']].forEach(([id,ph])=>{
+      const s=document.getElementById(id); if(!s) return;
+      const v=s.value; s.innerHTML=ph?`<option value="">${ph}</option>`:'';
+      accounts.forEach(a=>{ const o=document.createElement('option'); o.value=a.id; o.textContent=a.name; s.appendChild(o); });
+      if(!ph) s.value=v||accounts[0]?.id;
+    });
+    const fr=document.getElementById('f-route');
+    if(fr){ const v=fr.value; fr.innerHTML='<option value="">No specific route</option>'; routes.forEach(r=>{ const o=document.createElement('option'); o.value=r.id; o.textContent=r.name; fr.appendChild(o); }); fr.value=v; }
+    [['f-category',''],['b-cat',''],['filter-cat','All categories']].forEach(([id,ph])=>{
+      const s=document.getElementById(id); if(!s) return;
+      const v=s.value; s.innerHTML=ph?`<option value="">${ph}</option>`:'';
+      CATS.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; s.appendChild(o); }); s.value=v;
+    });
+  }
+
+  async function addTransaction(){
+    if(!can('add_transaction')){ toast('Access denied','error'); return; }
+    const amount=parseFloat(document.getElementById('f-amount').value);
+    const date=document.getElementById('f-date').value;
+    const memberId=parseInt(document.getElementById('f-member').value);
+    const accountId=parseInt(document.getElementById('f-account').value)||accounts[0].id;
+    const category=document.getElementById('f-category').value;
+    const routeId=parseInt(document.getElementById('f-route').value)||null;
+    const vehicle=document.getElementById('f-vehicle').value.trim().toUpperCase();
+    const desc=document.getElementById('f-desc').value.trim();
+    const notes=document.getElementById('f-notes').value.trim();
+    const approvalEl=document.getElementById('f-approval');
+    const needApproval=can('approve')?(approvalEl?.value==='required'):true;
+    if(!amount||!date||!memberId||!desc){ toast('Fill in amount, date, staff & description','warn'); return; }
+    const member=members.find(m=>m.id===memberId);
+    const account=accounts.find(a=>a.id===accountId)||accounts[0];
+    const route=routeId?routes.find(r=>r.id===routeId):null;
+    const status=needApproval?'pending':'approved';
+    const tx={id:Date.now(),type:currentType,amount,date,memberId,memberName:member.name,accountId:account.id,accountName:account.name,category,routeId,routeName:route?.name||'',vehicle,desc,notes,status,addedBy:currentUser.name,createdAt:new Date().toISOString()};
+    txns.unshift(tx);
+    if(status==='approved') account.balance+=currentType==='in'?amount:-amount;
+    save();
+    ['f-amount','f-desc','f-notes','f-vehicle'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    toast(status==='pending'?'Submitted for approval':'Transaction recorded ✓','success');
+    renderAll(); showTab('dashboard');
+  }
+
+  function addUser(){
+    if(!can('manage_users')){ toast('Access denied','error'); return; }
+    const name=document.getElementById('nu-name').value.trim();
+    const username=document.getElementById('nu-user').value.trim().toLowerCase();
+    const password=document.getElementById('nu-pass').value;
+    const role=document.getElementById('nu-role').value;
+    if(!name||!username||!password){ toast('Fill in all fields','warn'); return; }
+    if(users.find(u=>u.username===username)){ toast('Username already taken','error'); return; }
+    users.push({id:Date.now(),name,username,password,role});
+    save(); ['nu-name','nu-user','nu-pass'].forEach(id=>document.getElementById(id).value='');
+    renderUserList(); toast('User added','success');
+  }
+
+  function deleteUser(id){
+    if(!can('manage_users')){ toast('Access denied','error'); return; }
+    if(users.find(u=>u.id===id)?.role==='ceo'){ toast('Cannot remove the CEO account','warn'); return; }
+    users=users.filter(u=>u.id!==id); save(); renderUserList(); toast('User removed');
+  }
+
+  function addMember(){
+    if(!can('manage_users')){ toast('Access denied','error'); return; }
+    const name=document.getElementById('m-name').value.trim();
+    const role=document.getElementById('m-role').value.trim();
+    if(!name){ toast('Enter a name','warn'); return; }
+    members.push({id:Date.now(),name,role:role||'Staff'});
+    save(); document.getElementById('m-name').value=''; document.getElementById('m-role').value='';
+    populateSelects(); renderMembers(); toast('Staff member added','success');
+  }
+
+  function addAccount(){
+    if(!can('manage_accounts')){ toast('Access denied','error'); return; }
+    const name=document.getElementById('a-name').value.trim();
+    const bal=parseFloat(document.getElementById('a-bal').value)||0;
+    if(!name){ toast('Enter account name','warn'); return; }
+    accounts.push({id:Date.now(),name,balance:bal});
+    save(); document.getElementById('a-name').value=''; document.getElementById('a-bal').value='';
+    populateSelects(); renderAccounts(); toast('Account added','success');
+  }
+
+  function addRoute(){
+    if(!can('manage_accounts')){ toast('Access denied','error'); return; }
+    const name=document.getElementById('r-name').value.trim();
+    const dist=parseFloat(document.getElementById('r-dist').value)||0;
+    if(!name){ toast('Enter route name','warn'); return; }
+    routes.push({id:Date.now(),name,dist});
+    save(); document.getElementById('r-name').value=''; document.getElementById('r-dist').value='';
+    populateSelects(); toast('Route added','success');
+  }
+
+  function setBudget(){
+    if(!can('set_budget')){ toast('Access denied','error'); return; }
+    const cat=document.getElementById('b-cat').value;
+    const amt=parseFloat(document.getElementById('b-amount').value);
+    if(!amt){ toast('Enter a budget amount','warn'); return; }
+    budgets[cat]=amt; save(); renderBudgets(); toast('Budget saved for '+cat,'success');
+  }
+
+  function approve(id){
+    if(!can('approve')){ toast('Access denied','error'); return; }
+    const tx=txns.find(t=>t.id===id); if(!tx) return;
+    tx.status='approved'; tx.approvedBy=currentUser.name;
+    const acc=accounts.find(a=>a.id===tx.accountId)||accounts[0];
+    acc.balance+=tx.type==='in'?tx.amount:-tx.amount;
+    save(); renderAll(); toast('Transaction approved','success');
+  }
+
+  function rejectTx(id){
+    if(!can('approve')){ toast('Access denied','error'); return; }
+    const tx=txns.find(t=>t.id===id); if(!tx) return;
+    tx.status='rejected'; tx.rejectedBy=currentUser.name;
+    save(); renderAll(); toast('Transaction rejected');
+  }
+
+  function deleteTx(id){
+    if(!can('delete')){ toast('Admin / CEO only','error'); return; }
+    const tx=txns.find(t=>t.id===id); if(!tx) return;
+    if(tx.status==='approved'){ const acc=accounts.find(a=>a.id===tx.accountId)||accounts[0]; acc.balance-=tx.type==='in'?tx.amount:-tx.amount; }
+    txns=txns.filter(t=>t.id!==id); save(); renderAll(); toast('Deleted');
+  }
+
+  function exportCSV(){
+    if(!can('export_csv')){ toast('Access denied','error'); return; }
+    const rows=[['Date','Type','Amount (KES)','Staff','Account','Category','Route','Vehicle','Description','Notes','Status','Added by','Approved by']];
+    txns.forEach(t=>rows.push([t.date,t.type,t.amount,t.memberName,t.accountName,t.category,t.routeName||'',t.vehicle||'',t.desc,t.notes||'',t.status,t.addedBy||'',t.approvedBy||'']));
+    const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='bungoma-line-'+new Date().toISOString().split('T')[0]+'.csv'; a.click();
+    toast('CSV exported','success');
+  }
+
+  function txHTML(t,controls,delay=0){
+    const d=new Date(t.date).toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'});
+    const mask=!can('view_amounts');
+    return `<div class="txi ${t.status}" style="animation-delay:${delay}s">
+      <div class="txicon ${t.type}"><i class="ti ti-${t.type==='in'?'arrow-down':'arrow-up'}"></i></div>
+      <div class="txbody">
+        <div class="txdesc">${t.desc}</div>
+        <div class="txmeta">
+          <span class="badge ${t.type==='in'?'bin':'bout'}">${t.type==='in'?'In':'Out'}</span>
+          <span class="badge bcat">${t.category}</span>
+          ${statusBadge(t.status)}
+          ${t.routeName?`<span class="rpill">${t.routeName}</span>`:''}
+          ${t.vehicle?`<span class="badge bcat">${t.vehicle}</span>`:''}
+          <br>${t.memberName} &middot; ${t.accountName} &middot; ${d}
+          ${t.addedBy?`<br><span style="opacity:.6">Added by ${t.addedBy}</span>`:''}
+          ${t.notes?`<br><em style="opacity:.6">${t.notes}</em>`:''}
+        </div>
+      </div>
+      <div class="txright">
+        <div class="txamt ${t.type}">${t.type==='in'?'+':'&minus;'}${fmt(t.amount,mask)}</div>
+        ${controls&&t.status==='pending'&&can('approve')?`<button class="bapp" onclick="approve(${t.id})"><i class="ti ti-check"></i> Approve</button><button class="brej" onclick="rejectTx(${t.id})">Reject</button>`:''}
+        ${controls&&can('delete')?`<button class="bdel" onclick="deleteTx(${t.id})" aria-label="Delete"><i class="ti ti-trash"></i></button>`:''}
+      </div>
+    </div>`;
+  }
+
+  function renderDashboard(){
+    if(!currentUser) return;
+    const m=ROLES[currentUser.role];
+    const rb=document.getElementById('role-banner');
+    rb.style.background=m.bannerBg; rb.style.color=m.bannerColor;
+    rb.innerHTML=`<i class="ti ti-shield-check" style="font-size:20px;flex-shrink:0"></i><span>Signed in as <strong>${currentUser.name}</strong> &mdash; ${m.label} clearance</span>`;
+    const appr=txns.filter(t=>t.status==='approved');
+    const totalIn=appr.filter(t=>t.type==='in').reduce((s,t)=>s+t.amount,0);
+    const totalOut=appr.filter(t=>t.type==='out').reduce((s,t)=>s+t.amount,0);
+    const balance=totalIn-totalOut;
+    const pending=txns.filter(t=>t.status==='pending').length;
+    const mask=!can('view_amounts');
+    const hb=document.getElementById('hero-bal');
+    animNum(hb,balance,mask);
+    document.getElementById('hero-sub').textContent=`${txns.length} transaction${txns.length!==1?'s':''} across ${accounts.length} account${accounts.length!==1?'s':''}`;
+    document.getElementById('hero-pills').innerHTML=`
+      <div class="hero-pill"><i class="ti ti-arrow-down"></i>${mask?'Revenue ****':fmt(totalIn)}</div>
+      <div class="hero-pill"><i class="ti ti-arrow-up"></i>${mask?'Expenses ****':fmt(totalOut)}</div>
+      ${pending>0?`<div class="hero-pill" style="background:rgba(239,159,39,.22)"><i class="ti ti-clock"></i>${pending} pending</div>`:''}`;
+    document.getElementById('metrics').innerHTML=`
+      <div class="metric"><div class="ml"><i class="ti ti-arrow-down"></i>Revenue</div><div class="mv g">${mask?'KES ****':fmt(totalIn)}</div></div>
+      <div class="metric"><div class="ml"><i class="ti ti-arrow-up"></i>Expenditure</div><div class="mv r">${mask?'KES ****':fmt(totalOut)}</div></div>
+      <div class="metric"><div class="ml"><i class="ti ti-clock"></i>Pending</div><div class="mv ${pending>0?'o':'b'}">${pending}</div></div>
+      <div class="metric"><div class="ml"><i class="ti ti-bus"></i>Routes</div><div class="mv b">${routes.length}</div></div>`;
+    document.getElementById('recent-list').innerHTML=txns.length?txns.slice(0,5).map((t,i)=>txHTML(t,false,i*.055)).join(''):`<div class="empty"><i class="ti ti-receipt"></i>No transactions yet.<br>Tap Add to record one.</div>`;
+    const cats={};appr.filter(t=>t.type==='out').forEach(t=>cats[t.category]=(cats[t.category]||0)+t.amount);
+    const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    const maxV=sorted[0]?.[1]||1;
+    document.getElementById('cat-breakdown').innerHTML=sorted.length?sorted.map(([c,v],i)=>`
+      <div style="margin-bottom:13px;animation:fadeUp .3s ${i*.06}s cubic-bezier(.22,1,.36,1) both">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-bottom:6px"><span>${c}</span><span>${mask?'****':fmt(v)}</span></div>
+        <div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden">
+          <div style="--w:${Math.round(v/maxV*100)}%;height:100%;background:var(--primary);border-radius:4px;width:var(--w);animation:barGrow .75s ${i*.08+.1}s cubic-bezier(.22,1,.36,1) both"></div>
+        </div>
+      </div>`).join(''):`<div class="empty" style="padding:.75rem 0"><i class="ti ti-chart-bar"></i>No spending recorded yet</div>`;
+    const now=new Date();const mo=now.getMonth(),yr=now.getFullYear();
+    const mOut={};appr.filter(t=>t.type==='out').forEach(t=>{const d=new Date(t.date);if(d.getMonth()===mo&&d.getFullYear()===yr) mOut[t.category]=(mOut[t.category]||0)+t.amount;});
+    const alerts=Object.entries(budgets).filter(([c,b])=>mOut[c]&&mOut[c]/b>=.8).map(([c,b])=>{
+      const used=mOut[c]||0;const pct=Math.min(Math.round(used/b*100),100);const over=used>b;
+      return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-bottom:5px"><span>${c}</span><span style="${over?'color:var(--red)':''}">${pct}%${over?' — over budget':''}</span></div><div style="height:7px;background:var(--bg3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${over?'#E24B4A':'#EF9F27'};border-radius:4px"></div></div></div>`;
+    });
+    document.getElementById('budget-alerts').innerHTML=alerts.length?alerts.join(''):`<div style="font-size:13px;color:var(--text2);padding:.3rem 0;display:flex;align-items:center;gap:7px"><i class="ti ti-circle-check" style="color:var(--green)"></i>No budget warnings this month</div>`;
+    const cnt=txns.filter(t=>t.status==='pending').length;
+    document.getElementById('appr-label').innerHTML='Approve'+(cnt>0?`<span class="pb">${cnt}</span>`:'');
+  }
+
+  function renderApprovals(){
+    const p=txns.filter(t=>t.status==='pending');
+    document.getElementById('approvals-list').innerHTML=p.length?p.map((t,i)=>txHTML(t,true,i*.055)).join(''):`<div class="empty"><i class="ti ti-check"></i>No pending approvals</div>`;
+  }
+
+  function renderHistory(){
+    const ft=document.getElementById('filter-type').value;
+    const fm=document.getElementById('filter-member').value;
+    const fc=document.getElementById('filter-cat').value;
+    const fs=document.getElementById('filter-status').value;
+    const fq=document.getElementById('filter-search').value.toLowerCase();
+    const f=txns.filter(t=>(!ft||t.type===ft)&&(!fm||t.memberId==fm)&&(!fc||t.category===fc)&&(!fs||t.status===fs)&&(!fq||t.desc.toLowerCase().includes(fq)||t.memberName.toLowerCase().includes(fq)||t.category.toLowerCase().includes(fq)));
+    document.getElementById('history-list').innerHTML=f.length?f.map((t,i)=>txHTML(t,true,i*.04)).join(''):`<div class="empty"><i class="ti ti-search"></i>No transactions match your filters</div>`;
+  }
+
+  function renderBudgets(){
+    const now=new Date();const mo=now.getMonth(),yr=now.getFullYear();
+    const mOut={};txns.filter(t=>t.status==='approved'&&t.type==='out').forEach(t=>{const d=new Date(t.date);if(d.getMonth()===mo&&d.getFullYear()===yr) mOut[t.category]=(mOut[t.category]||0)+t.amount;});
+    const items=CATS.map((c,i)=>{
+      const b=budgets[c]||0;const used=mOut[c]||0;if(!b&&!used) return '';
+      const pct=b?Math.min(Math.round(used/b*100),100):0;
+      const cls=pct>=100?'over':pct>=80?'warn':'ok';
+      return `<div class="bitem" style="animation-delay:${i*.05}s"><div class="brow"><span style="font-weight:500">${c}</span><span style="color:var(--text2)">${fmt(used)}${b?' / '+fmt(b):''}</span></div>${b?`<div class="btrack"><div class="bfill ${cls}" style="--w:${pct}%"></div></div>`:''}</div>`;
+    }).filter(Boolean);
+    document.getElementById('budget-list').innerHTML=items.length?items.join(''):`<div class="empty"><i class="ti ti-chart-bar"></i>No budgets set. Use the form above.</div>`;
+  }
+
+  function renderAccounts(){
+    const tabs=document.getElementById('account-tabs');
+    tabs.innerHTML=accounts.map(a=>`<button class="atab${currentAccount===a.id||(!currentAccount&&a===accounts[0])?' active':''}" onclick="selectAccount(${a.id})">${a.name}</button>`).join('');
+    const acc=accounts.find(a=>a.id===(currentAccount||accounts[0]?.id));
+    if(!acc){document.getElementById('account-detail').innerHTML='';return;}
+    const at=txns.filter(t=>t.accountId===acc.id&&t.status==='approved');
+    const tIn=at.filter(t=>t.type==='in').reduce((s,t)=>s+t.amount,0);
+    const tOut=at.filter(t=>t.type==='out').reduce((s,t)=>s+t.amount,0);
+    const mask=!can('view_amounts');
+    document.getElementById('account-detail').innerHTML=`
+      <div class="metrics" style="margin-bottom:12px">
+        <div class="metric"><div class="ml"><i class="ti ti-wallet"></i>Balance</div><div class="mv ${acc.balance>=0?'g':'r'}">${mask?'KES ****':fmt(acc.balance)}</div></div>
+        <div class="metric"><div class="ml"><i class="ti ti-list"></i>Transactions</div><div class="mv b">${at.length}</div></div>
+        <div class="metric"><div class="ml"><i class="ti ti-arrow-down"></i>Total in</div><div class="mv g">${mask?'KES ****':fmt(tIn)}</div></div>
+        <div class="metric"><div class="ml"><i class="ti ti-arrow-up"></i>Total out</div><div class="mv r">${mask?'KES ****':fmt(tOut)}</div></div>
+      </div>
+      <div class="txlist">${at.length?at.slice(0,8).map((t,i)=>txHTML(t,false,i*.05)).join(''):`<div class="empty"><i class="ti ti-inbox"></i>No transactions for this account</div>`}</div>`;
+  }
+
+  function selectAccount(id){
+    currentAccount=id;
+    document.querySelectorAll('.atab').forEach(b=>b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderAccounts();
+  }
+
+  function renderUserList(){
+    const el=document.getElementById('user-list'); if(!el) return;
+    el.innerHTML=users.map((u,i)=>{
+      const m=ROLES[u.role]||ROLES.staff;
+      return `<div class="user-card" style="animation-delay:${i*.05}s">
+        <div class="um-avatar" style="background:${m.bg};color:${m.color}">${initials(u.name)}</div>
+        <div class="um-body"><div class="um-name">${u.name}</div><div class="um-meta">${u.username} &nbsp;${roleBadge(u.role)}</div></div>
+        ${u.role!=='ceo'?`<button class="bdel" onclick="deleteUser(${u.id})" aria-label="Remove"><i class="ti ti-trash"></i></button>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  function renderMembers(){
+    ['member-grid','member-grid-staff'].forEach(gid=>{
+      const g=document.getElementById(gid); if(!g) return;
+      const mask=!can('view_amounts');
+      g.innerHTML=members.length?members.map((m,i)=>{
+        const mt=txns.filter(t=>t.memberId===m.id&&t.status==='approved');
+        const spent=mt.filter(t=>t.type==='out').reduce((s,t)=>s+t.amount,0);
+        const recv=mt.filter(t=>t.type==='in').reduce((s,t)=>s+t.amount,0);
+        return `<div class="mcard" style="animation-delay:${i*.06}s">
+          <div class="mavatar" style="background:var(--primary)">${initials(m.name)}</div>
+          <div class="mname">${m.name}</div><div class="mrole">${m.role}</div>
+          <div class="mstat">Transactions: <span>${mt.length}</span></div>
+          <div class="mstat">Received: <span style="color:var(--green)">${mask?'****':fmt(recv)}</span></div>
+          <div class="mstat">Spent: <span style="color:var(--red)">${mask?'****':fmt(spent)}</span></div>
+        </div>`;
+      }).join(''):`<div class="empty"><i class="ti ti-users"></i>No staff added</div>`;
+    });
+  }
+
+  function renderAll(){
+    if(!currentUser) return;
+    renderDashboard(); renderApprovals(); renderHistory();
+    renderBudgets(); renderAccounts(); renderUserList(); renderMembers();
+  }
+
+  load();
+</script>
+</body>
+</html>
